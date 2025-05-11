@@ -69,4 +69,41 @@ export const GetAllTransactionsByFilter = async (req, res) => {
     });
   }
 };
+export const GetTransactionByWorkSiteId = async (req, res) => {
+  try {
+    const { workSiteId } = req.body;
+
+    // 1. Fetch all transactions for that site
+    const transactions = await Transaction.find({ toSite: workSiteId });
+
+    // 2. Get unique userIds and siteIds from transactions
+    const userIds = [...new Set(transactions.map(t => t.userId))];
+    const siteIds = [...new Set(transactions.map(t => t.toSite))];
+
+    // 3. Fetch users and sites
+    const users = await User.find({ _id: { $in: userIds } });
+    const sites = await WorkSite.find({ _id: { $in: siteIds } });
+
+    const userMap = Object.fromEntries(users.map(user => [user._id.toString(), user.name]));
+    const siteMap = Object.fromEntries(sites.map(site => [site._id.toString(), site.workSiteName]));
+
+    // 4. Attach names to transactions
+    const enhancedTransactions = transactions.map(t => ({
+      ...t._doc,
+      userName: userMap[t.userId] || "Unknown User",
+      siteName: siteMap[t.toSite] || "Unknown Site"
+    }));
+
+    res.status(200).json({
+      message: "Transactions retrieved successfully",
+      data: enhancedTransactions
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error retrieving transactions",
+      error: error.message
+    });
+  }
+};
 
