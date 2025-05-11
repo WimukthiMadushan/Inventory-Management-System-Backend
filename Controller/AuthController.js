@@ -1,4 +1,5 @@
 import User from "./../Models/UserModel.js"
+import WorkSite from "./../Models/WorkSitesModel.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -25,8 +26,14 @@ const signup = async (req, res) => {
         await newUser.save();
 
         res.status(201).json({
-            message: "User registered successfully"
-        });
+            message: "User registered successfully.",
+            user: {
+              _id: newUser._id,
+              name: newUser.name,
+              email: newUser.email,
+              status: newUser.status,
+            },
+          });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });
@@ -93,11 +100,28 @@ const getAllUsersByPagination = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const getAllManagers = async (req, res) => {
     try {
         const managers = await User.find({ status: "manager" });
         res.status(200).json(managers);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+const getManagersCount = async (req, res) => {
+    try {
+        const count = await User.countDocuments({ status: "manager" });
+        res.status(200).json({ count });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+const getAdminsCount = async (req, res) => {
+    try {
+        const count = await User.countDocuments({ status: "admin" });
+        res.status(200).json({ count });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });
@@ -112,5 +136,35 @@ const getAllAdmins = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const isManager = await WorkSite.findOne({ workSiteManager: id });
+        if (isManager) {
+            return res.status(400).json({
+              message: "Cannot delete user. They are assigned as a manager of a work site.",
+            });
+        }
+        
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
-export { signup, signin, getAllUsersByPagination ,getAllManagers, getAllAdmins };
+
+export { signup, signin, getAllUsersByPagination ,getAllManagers, getAllAdmins,deleteUser, getManagersCount,getAdminsCount,getAllUsers };

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import ItemRoutes from './Routes/ItemRoutes.js';
 import AuthRoutes from './Routes/AuthRoutes.js';
 import WorkSitesRoutes from './Routes/WorkSitesRoute.js';
+import TransactionRoutes from './Routes/TransactionRoutes.js';
 import cors from 'cors';
 
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
 app.use("/Items", ItemRoutes);
 app.use("/User", AuthRoutes);
 app.use("/WorkSite", WorkSitesRoutes);
+app.use("/Transaction", TransactionRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI)

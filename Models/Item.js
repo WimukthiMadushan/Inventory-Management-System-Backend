@@ -4,6 +4,7 @@ const itemSchema = new mongoose.Schema({
     itemName: {
         type: String,
         required: true,
+        unique: true,
     },
     workSiteId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -17,6 +18,11 @@ const itemSchema = new mongoose.Schema({
     lastUpdated: {
         type: Date,
         default: Date.now,
+    },
+    image: {
+        type: String,
+        required: false,
+        default: null,
     },
 }, { timestamps: true });
 
